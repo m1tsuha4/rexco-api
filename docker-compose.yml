@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/rexco?schema=public
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+    depends_on:
+      - db
+    restart: always
+    networks:
+      - rexco-network
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=rexco
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - rexco-network
+
+volumes:
+  postgres_data:
+
+networks:
+  rexco-network:

@@ -1,0 +1,47 @@
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import {
+  DocumentBuilder,
+  SwaggerCustomOptions,
+  SwaggerModule,
+} from '@nestjs/swagger';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { join } from 'path';
+
+async function bootstrap() {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.enableCors({
+    origin: '*',
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+  });
+
+  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
+
+  const config = new DocumentBuilder()
+    .setTitle('Rexco API')
+    .setDescription('Rexco API documentation')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+
+  const swaggerCustomOptions: SwaggerCustomOptions = {
+    customSiteTitle: 'Ryu API Docs',
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.3.2/swagger-ui-bundle.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.3.2/swagger-ui-standalone-preset.js',
+    ],
+    customCssUrl:
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.3.2/swagger-ui.css',
+  };
+
+  SwaggerModule.setup('api', app, document, swaggerCustomOptions);
+  await app.listen(process.env.PORT ?? 3000);
+}
+void bootstrap();
