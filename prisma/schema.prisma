@@ -32,3 +32,110 @@ model TokenBlacklist {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  urlYoutube  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  productImage    ProductImage[]
+  productStore    ProductStore[]
+  productDocument ProductDocument[]
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  url       String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProductStore {
+  id        String   @id @default(cuid())
+  name      String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productStore Store[]
+}
+
+model Store {
+  id            String       @id @default(cuid())
+  name          String
+  urlStore      String
+  producStoreId String
+  productStore  ProductStore @relation(fields: [producStoreId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model ProductDocument {
+  id        String              @id @default(cuid())
+  type      ProductDocumentType @default(MSDS)
+  file      String
+  productId String
+  product   Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+}
+
+enum ProductDocumentType {
+  MSDS
+  TDS
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  image     String?
+  file      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Article {
+  id             String    @id @default(cuid())
+  title          String
+  slug           String    @unique
+  excerpt        String?   @db.Text
+  contentHtml    String    @db.Text
+  primaryImage   String?
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+  metaTags       Json?
+  author         String?
+  publishedAt    DateTime? @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model ImageArticle {
+  id        String   @id @default(cuid())
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WebGallery {
+  id        String   @id @default(cuid())
+  title     String
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Instagram {
+  id        String   @id @default(cuid())
+  title     String?
+  link      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
