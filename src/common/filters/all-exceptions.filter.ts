@@ -23,7 +23,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const errors: Record<string, string> = {};
 
       exception.issues.forEach((issue) => {
-        const field = issue.path.join('.') || 'global';
+        const field = issue.path.length ? issue.path.join('.') : 'body';
         errors[field] = issue.message;
       });
 
@@ -36,19 +36,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status = exception.getStatus();
       const res = exception.getResponse();
 
-      if (
-        typeof res === 'object' &&
-        res !== null &&
-        'success' in (res as any)
-      ) {
-        body = res;
+      if (typeof res === 'object' && res !== null) {
+        body = {
+          success: false,
+          ...res,
+        };
       } else {
-        const message =
-          (res as any)?.message ||
-          (typeof res === 'string' ? res : 'Unexpected error');
-
         body = fail(
-          Array.isArray(message) ? message[0] : message,
+          typeof res === 'string' ? res : 'Unexpected error',
           'HTTP_EXCEPTION',
         );
       }

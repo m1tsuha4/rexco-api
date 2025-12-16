@@ -1,5 +1,9 @@
 import { BadRequestException, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { existsSync, mkdirSync } from 'fs';
@@ -103,5 +107,56 @@ export function UploadPdfInterceptor(
         fileSize: maxSizeBytes,
       },
     }),
+  );
+}
+
+export function UploadProductFilesInterceptor() {
+  const imagePath = './uploads/product/images';
+  const docPath = './uploads/product/documents';
+
+  ensureDirExists(imagePath);
+  ensureDirExists(docPath);
+
+  return UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'images', maxCount: 10 },
+        { name: 'documents', maxCount: 5 },
+      ],
+      {
+        storage: diskStorage({
+          destination: (req, file, cb) => {
+            if (file.fieldname === 'images') {
+              cb(null, imagePath);
+            } else if (file.fieldname === 'documents') {
+              cb(null, docPath);
+            } else {
+              cb(new BadRequestException('Invalid file field'), '');
+            }
+          },
+          filename: (_req, file, cb) => {
+            const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            cb(null, unique + extname(file.originalname));
+          },
+        }),
+        fileFilter: (_req, file, cb) => {
+          if (
+            file.fieldname === 'images' &&
+            !file.mimetype.startsWith('image/')
+          ) {
+            return cb(new BadRequestException('Only images allowed'), false);
+          }
+
+          if (
+            file.fieldname === 'documents' &&
+            file.mimetype !== 'application/pdf'
+          ) {
+            return cb(new BadRequestException('Only PDF allowed'), false);
+          }
+
+          cb(null, true);
+        },
+      },
+    ),
   );
 }
