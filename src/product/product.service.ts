@@ -157,6 +157,27 @@ export class ProductService {
     });
   }
 
+  async search(search: string) {
+    return await this.prisma.product.findMany({
+      where: {
+        name: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        productImage: {
+          select: {
+            url: true,
+          },
+        },
+      },
+    });
+  }
+
   async findOne(id: string) {
     const existingProduct = await this.prisma.product.findUnique({
       where: {

@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   UploadedFiles,
+  Query,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import {
@@ -108,6 +109,11 @@ export class ProductController {
   @Get('slug/:slug')
   findBySlug(@Param('slug') slug: string) {
     return this.productService.findBySlug(slug);
+  }
+
+  @Get('search')
+  search(@Query('search') search: string) {
+    return this.productService.search(search);
   }
 
   @Get(':id')
