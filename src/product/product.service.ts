@@ -8,7 +8,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import slugify from 'slugify';
-import fs from 'fs';
+import fs, { existsSync, unlinkSync } from 'fs';
+import { basename, join } from 'path';
 
 @Injectable()
 export class ProductService {
@@ -278,7 +279,6 @@ export class ProductService {
     images?: Express.Multer.File[],
     documents?: Express.Multer.File[],
   ) {
-    console.log(updateProductDto);
     const existingProduct = await this.prisma.product.findUnique({
       where: {
         id,
@@ -293,43 +293,49 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
 
-    const oldImagePaths = existingProduct.productImage.map(
-      (image) => `.${image.url}`,
-    );
-    const oldDocumentPaths = existingProduct.productDocument.map(
-      (document) => `.${document.file}`,
+    const slug = updateProductDto.name
+      ? slugify(updateProductDto.name, { lower: true, strict: true })
+      : existingProduct.slug;
+    if (slug !== existingProduct.slug) {
+      const slugExist = await this.prisma.product.findUnique({
+        where: { slug },
+      });
+      if (slugExist) {
+        throw new BadRequestException(
+          'Product with the same slug already exists',
+        );
+      }
+    }
+
+    const oldImagePaths = join(process.cwd(), 'uploads', 'product', 'images');
+    const oldDocumentPaths = join(
+      process.cwd(),
+      'uploads',
+      'product',
+      'documents',
     );
 
     try {
       const updatedProduct = await this.prisma.$transaction(async (tx) => {
-        const data: any = {};
-
-        if (typeof updateProductDto.name === 'string') {
-          data.name = updateProductDto.name;
-          data.slug = slugify(updateProductDto.name, {
-            lower: true,
-            strict: true,
-          });
-        }
-
-        if (typeof updateProductDto.description === 'string') {
-          data.description = updateProductDto.description;
-        }
-
-        if (typeof updateProductDto.urlYoutube === 'string') {
-          data.urlYoutube = updateProductDto.urlYoutube;
-        }
-
-        if (Object.keys(data).length === 0) {
-          throw new BadRequestException('No fields to update');
-        }
-
         const product = await tx.product.update({
           where: { id },
-          data,
+          data: {
+            name: updateProductDto.name,
+            slug,
+            description: updateProductDto.description,
+            urlYoutube: updateProductDto.urlYoutube,
+          },
         });
 
         if (images?.length) {
+          for (const img of existingProduct.productImage) {
+            const fileName = basename(img.url);
+            const oldPath = join(oldImagePaths, fileName);
+            if (existsSync(oldPath)) {
+              unlinkSync(oldPath);
+            }
+          }
+
           await tx.productImage.deleteMany({
             where: {
               productId: id,
@@ -342,15 +348,17 @@ export class ProductService {
               url: `/uploads/product/${image.filename}`,
             })),
           });
-
-          existingProduct.productImage.forEach((image) => {
-            if (fs.existsSync(image.url)) {
-              fs.unlinkSync(image.url);
-            }
-          });
         }
 
         if (documents?.length) {
+          for (const doc of existingProduct.productDocument) {
+            const fileName = basename(doc.file);
+            const oldPath = join(oldDocumentPaths, fileName);
+            if (existsSync(oldPath)) {
+              unlinkSync(oldPath);
+            }
+          }
+
           await tx.productDocument.deleteMany({
             where: {
               productId: id,
@@ -365,12 +373,6 @@ export class ProductService {
                 documents.indexOf(document)
               ].type,
             })),
-          });
-
-          existingProduct.productDocument.forEach((document) => {
-            if (fs.existsSync(document.file)) {
-              fs.unlinkSync(document.file);
-            }
           });
         }
 
@@ -410,31 +412,8 @@ export class ProductService {
         }
         return product;
       });
-
-      if (images?.length) {
-        oldImagePaths.forEach((path) => {
-          if (fs.existsSync(path)) {
-            fs.unlinkSync(path);
-          }
-        });
-      }
-
-      if (documents?.length) {
-        oldDocumentPaths.forEach((path) => {
-          if (fs.existsSync(path)) {
-            fs.unlinkSync(path);
-          }
-        });
-      }
-
       return updatedProduct;
     } catch (error) {
-      [...(images ?? []), ...(documents ?? [])].forEach((file) => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      });
-
       throw error;
     }
   }
@@ -454,14 +433,25 @@ export class ProductService {
       throw new NotFoundException('Product not found');
     }
 
-    const imagePath = existingProduct.productImage.map(
-      (image) => `.${image.url}`,
-    );
-    const documentPath = existingProduct.productDocument.map(
-      (document) => `.${document.file}`,
-    );
+    const uploadRoot = join(process.cwd(), 'uploads', 'product');
 
     await this.prisma.$transaction(async (tx) => {
+      for (const img of existingProduct.productImage) {
+        const fileName = basename(img.url);
+        const oldPath = join(uploadRoot, 'images', fileName);
+        if (existsSync(oldPath)) {
+          unlinkSync(oldPath);
+        }
+      }
+
+      for (const doc of existingProduct.productDocument) {
+        const fileName = basename(doc.file);
+        const oldPath = join(uploadRoot, 'documents', fileName);
+        if (existsSync(oldPath)) {
+          unlinkSync(oldPath);
+        }
+      }
+
       await tx.product.delete({
         where: {
           id,
@@ -493,12 +483,6 @@ export class ProductService {
           },
         },
       });
-    });
-
-    [...imagePath, ...documentPath].forEach((path) => {
-      if (fs.existsSync(path)) {
-        fs.unlinkSync(path);
-      }
     });
 
     return true;

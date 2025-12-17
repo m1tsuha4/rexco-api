@@ -9,6 +9,7 @@ import {
   UseGuards,
   UploadedFiles,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import {
@@ -41,7 +42,7 @@ export class ProductController {
     schema: {
       type: 'object',
       properties: {
-        name: { type: 'string', example: 'REXCO 82 -   Brake Cleaner' },
+        name: { type: 'string', example: 'REXCO 82 - Brake Cleaner' },
         description: { type: 'string' },
         urlYoutube: { type: 'string', example: 'https://youtube.com/...' },
 
@@ -123,12 +124,13 @@ export class ProductController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @UploadProductFilesInterceptor()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        name: { type: 'string', example: 'REXCO 82 – Brake Cleaner' },
+        name: { type: 'string', example: 'REXCO 82 - Brake Cleaner' },
         description: { type: 'string' },
         urlYoutube: { type: 'string', example: 'https://youtube.com/...' },
 
