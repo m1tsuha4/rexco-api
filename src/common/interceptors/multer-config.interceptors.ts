@@ -160,3 +160,73 @@ export function UploadProductFilesInterceptor() {
     ),
   );
 }
+
+export function UploadFilesInterceptor(options: {
+  imageField: string;
+  documentField: string;
+  imagePath: string;
+  documentPath: string;
+  imageMax?: number;
+  documentMax?: number;
+}) {
+  const {
+    imageField,
+    documentField,
+    imagePath,
+    documentPath,
+    imageMax = 1,
+    documentMax = 1,
+  } = options;
+
+  ensureDirExists(imagePath);
+  ensureDirExists(documentPath);
+
+  return UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: imageField, maxCount: imageMax },
+        { name: documentField, maxCount: documentMax },
+      ],
+      {
+        storage: diskStorage({
+          destination: (_req, file, cb) => {
+            if (file.fieldname === imageField) {
+              cb(null, imagePath);
+            } else if (file.fieldname === documentField) {
+              cb(null, documentPath);
+            } else {
+              cb(new BadRequestException('Invalid file field'), '');
+            }
+          },
+          filename: (_req, file, cb) => {
+            const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            cb(null, unique + extname(file.originalname));
+          },
+        }),
+        fileFilter: (_req, file, cb) => {
+          if (
+            file.fieldname === imageField &&
+            !file.mimetype.startsWith('image/')
+          ) {
+            return cb(
+              new BadRequestException('Only image files allowed'),
+              false,
+            );
+          }
+
+          if (
+            file.fieldname === documentField &&
+            file.mimetype !== 'application/pdf'
+          ) {
+            return cb(
+              new BadRequestException('Only PDF files allowed'),
+              false,
+            );
+          }
+
+          cb(null, true);
+        },
+      },
+    ),
+  );
+}
