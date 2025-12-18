@@ -7,9 +7,13 @@ import { existsSync, unlinkSync } from 'fs';
 
 @Injectable()
 export class DocumentService {
-  constructor (private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(createDocumentDto: CreateDocumentDto, image?: Express.Multer.File, file?: Express.Multer.File) {
+  async create(
+    createDocumentDto: CreateDocumentDto,
+    image?: Express.Multer.File,
+    file?: Express.Multer.File,
+  ) {
     if (!image || !file) {
       throw new BadRequestException('Image and file are required');
     }
@@ -19,10 +23,10 @@ export class DocumentService {
         title: createDocumentDto.title,
         image: `/uploads/documents/brosur/img/${image?.filename}`,
         file: `/uploads/documents/brosur/file/${file?.filename}`,
-      }
+      },
     });
 
-    return document
+    return document;
   }
 
   async findAll() {
@@ -32,7 +36,7 @@ export class DocumentService {
         title: true,
         image: true,
         file: true,
-      }
+      },
     });
   }
 
@@ -42,25 +46,34 @@ export class DocumentService {
         id,
       },
       select: {
-        id: true, 
+        id: true,
         title: true,
         image: true,
         file: true,
-      }
+      },
     });
   }
 
-  async update(id: string, updateDocumentDto: UpdateDocumentDto, image?: Express.Multer.File, file?: Express.Multer.File) {
+  async update(
+    id: string,
+    updateDocumentDto: UpdateDocumentDto,
+    image?: Express.Multer.File,
+    file?: Express.Multer.File,
+  ) {
     const document = await this.findOne(id);
     if (!document) {
       throw new BadRequestException('Document not found');
     }
 
-    const { image: _ignoreImage, file: _ignoreFile, ...rest } = updateDocumentDto as any;
+    const {
+      image: _ignoreImage,
+      file: _ignoreFile,
+      ...rest
+    } = updateDocumentDto as any;
     const updateData: any = { ...rest };
     const uploadRoot = join(process.cwd(), 'uploads', 'documents', 'brosur');
-    let img:string | undefined;
-    let doc:string | undefined;
+    let img: string | undefined;
+    let doc: string | undefined;
 
     if (image) {
       img = `/uploads/documents/brosur/img/${image?.filename}`;
@@ -74,7 +87,7 @@ export class DocumentService {
         }
       }
     }
-    
+
     if (file) {
       doc = `/uploads/documents/brosur/file/${file?.filename}`;
       updateData.file = doc;
@@ -110,7 +123,7 @@ export class DocumentService {
         unlinkSync(oldPath);
       }
     }
-    
+
     if (documentExisting.file) {
       const fileName = basename(documentExisting.file);
       const oldPath = join(uploadRoot, 'file', fileName);
@@ -122,7 +135,7 @@ export class DocumentService {
     return await this.prisma.document.delete({
       where: {
         id,
-      }
+      },
     });
   }
 }

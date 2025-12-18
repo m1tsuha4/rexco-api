@@ -218,10 +218,7 @@ export function UploadFilesInterceptor(options: {
             file.fieldname === documentField &&
             file.mimetype !== 'application/pdf'
           ) {
-            return cb(
-              new BadRequestException('Only PDF files allowed'),
-              false,
-            );
+            return cb(new BadRequestException('Only PDF files allowed'), false);
           }
 
           cb(null, true);
