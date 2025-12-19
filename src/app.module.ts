@@ -9,6 +9,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { ProductModule } from './product/product.module';
 import { DocumentModule } from './document/document.module';
+import { GalleryModule } from './gallery/gallery.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { DocumentModule } from './document/document.module';
     AuthModule,
     ProductModule,
     DocumentModule,
+    GalleryModule,
   ],
   controllers: [AppController],
   providers: [

@@ -136,7 +136,7 @@ model ImageArticle {
 
 model WebGallery {
   id        String   @id @default(cuid())
-  title     String
+  title     String?
   image     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
