@@ -46,6 +46,20 @@ export class ProductController {
         description: { type: 'string' },
         urlYoutube: { type: 'string', example: 'https://youtube.com/...' },
 
+        productFeature: {
+          type: 'string',
+          example: JSON.stringify([
+            {
+              text: 'Menghilangkan Bunyi Derit',
+              order: 1,
+            },
+            {
+              text: 'Anti Karat',
+              order: 2,
+            }
+          ]),
+        },
+
         productStore: {
           type: 'string',
           example: JSON.stringify([
@@ -107,15 +121,21 @@ export class ProductController {
     return this.productService.findAllProduct();
   }
 
+  @Get('search')
+  search(@Query('search') search: string) {
+    return this.productService.search(search);
+  }
+
+  @Get('best-seller')
+  bestSeller() {
+    return this.productService.bestSeller();
+  }
+
   @Get('slug/:slug')
   findBySlug(@Param('slug') slug: string) {
     return this.productService.findBySlug(slug);
   }
 
-  @Get('search')
-  search(@Query('search') search: string) {
-    return this.productService.search(search);
-  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -133,6 +153,20 @@ export class ProductController {
         name: { type: 'string', example: 'REXCO 82 - Brake Cleaner' },
         description: { type: 'string' },
         urlYoutube: { type: 'string', example: 'https://youtube.com/...' },
+
+        productFeature: {
+          type: 'string',
+          example: JSON.stringify([
+            {
+              text: 'Menghilangkan Bunyi Derit',
+              order: 1,
+            },
+            {
+              text: 'Anti Karat',
+              order: 2,
+            },
+          ]),
+        },
 
         productStore: {
           type: 'string',

@@ -1,7 +1,7 @@
 import { PipeTransform } from '@nestjs/common';
 
 export class ParseJsonPipe implements PipeTransform {
-  private jsonFields = ['productStore', 'productDocument'];
+  private jsonFields = ['productStore', 'productDocument', 'productFeature'];
 
   transform(value: any) {
     if (!value || typeof value !== 'object') {

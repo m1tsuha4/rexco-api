@@ -39,6 +39,16 @@ export class ProductService {
           },
         });
 
+        if (createProductDto.productFeature?.length) {
+          await tx.productFeature.createMany({
+            data: createProductDto.productFeature.map((feature) => ({
+              text: feature.text,
+              order: feature.order,
+              productId: product.id,
+            })),
+          });
+        }
+
         if (images && images.length > 0) {
           await tx.productImage.createMany({
             data: images.map((image) => ({
@@ -205,6 +215,12 @@ export class ProductService {
             url: true,
           },
         },
+        productFeature: {
+          select: {
+            text: true,
+            order: true,
+          },
+        },
         productStore: {
           select: {
             name: true,
@@ -222,6 +238,30 @@ export class ProductService {
             file: true,
           },
         },
+      },
+    });
+  }
+
+  async bestSeller() {
+    return await this.prisma.product.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        productFeature: {
+          select: {
+            text: true,
+            order: true,
+          },
+        },
+        productImage: {
+          select: {
+            url: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   }
@@ -250,6 +290,12 @@ export class ProductService {
         productImage: {
           select: {
             url: true,
+          },
+        },
+        productFeature: {
+          select: {
+            text: true,
+            order: true,
           },
         },
         productStore: {
@@ -284,6 +330,8 @@ export class ProductService {
         id,
       },
       include: {
+        productFeature: true,
+        productStore: true,
         productDocument: true,
         productImage: true,
       },
@@ -410,6 +458,22 @@ export class ProductService {
             }
           }
         }
+
+        if (updateProductDto.productFeature) {
+          await tx.productFeature.deleteMany({
+            where: {
+              productId: id,
+            },
+          });
+
+          await tx.productFeature.createMany({
+            data: updateProductDto.productFeature.map((feature) => ({
+              productId: id,
+              text: feature.text,
+              order: feature.order,
+            })),
+          });
+        }
         return product;
       });
       return updatedProduct;
@@ -424,6 +488,8 @@ export class ProductService {
         id,
       },
       include: {
+        productFeature: true,
+        productStore: true,
         productImage: true,
         productDocument: true,
       },
@@ -455,6 +521,12 @@ export class ProductService {
       await tx.product.delete({
         where: {
           id,
+        },
+      });
+
+      await tx.productFeature.deleteMany({
+        where: {
+          productId: id,
         },
       });
 

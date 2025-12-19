@@ -6,6 +6,15 @@ export const CreateProductSchema = z.object({
   description: z.string().optional(),
   urlYoutube: z.string().url({ message: 'Invalid URL' }).optional(),
 
+  productFeature: z
+    .array(
+      z.object({
+        text: z.string(),
+        order: z.number(),
+      }),
+    )
+    .optional(),
+
   productImage: z
     .array(
       z.object({
