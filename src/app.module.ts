@@ -11,6 +11,7 @@ import { ProductModule } from './product/product.module';
 import { DocumentModule } from './document/document.module';
 import { GalleryModule } from './gallery/gallery.module';
 import { InstagramModule } from './instagram/instagram.module';
+import { ArticleModule } from './article/article.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { InstagramModule } from './instagram/instagram.module';
     DocumentModule,
     GalleryModule,
     InstagramModule,
+    ArticleModule,
   ],
   controllers: [AppController],
   providers: [

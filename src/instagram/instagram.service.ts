@@ -19,7 +19,7 @@ export class InstagramService {
         id: true,
         title: true,
         link: true,
-      }
+      },
     });
   }
 
@@ -27,7 +27,7 @@ export class InstagramService {
     const instagram = await this.prisma.instagram.findUnique({
       where: { id },
     });
-    
+
     if (!instagram) {
       throw new BadRequestException('Instagram not found');
     }

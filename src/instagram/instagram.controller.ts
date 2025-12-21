@@ -1,7 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { InstagramService } from './instagram.service';
-import { CreateInstagramDto, CreateInstagramSchema } from './dto/create-instagram.dto';
-import { UpdateInstagramDto, UpdateInstagramSchema } from './dto/update-instagram.dto';
+import {
+  CreateInstagramDto,
+  CreateInstagramSchema,
+} from './dto/create-instagram.dto';
+import {
+  UpdateInstagramDto,
+  UpdateInstagramSchema,
+} from './dto/update-instagram.dto';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-guard.auth';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
@@ -22,7 +37,10 @@ export class InstagramController {
     },
   })
   @Post()
-  create(@Body(new ZodValidationPipe(CreateInstagramSchema)) createInstagramDto: CreateInstagramDto) {
+  create(
+    @Body(new ZodValidationPipe(CreateInstagramSchema))
+    createInstagramDto: CreateInstagramDto,
+  ) {
     return this.instagramService.create(createInstagramDto);
   }
 
@@ -48,7 +66,11 @@ export class InstagramController {
     },
   })
   @Patch(':id')
-  update(@Param('id') id: string, @Body(new ZodValidationPipe(UpdateInstagramSchema)) updateInstagramDto: UpdateInstagramDto) {
+  update(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateInstagramSchema))
+    updateInstagramDto: UpdateInstagramDto,
+  ) {
     return this.instagramService.update(id, updateInstagramDto);
   }
 

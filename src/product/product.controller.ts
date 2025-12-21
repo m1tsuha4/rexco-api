@@ -56,7 +56,7 @@ export class ProductController {
             {
               text: 'Anti Karat',
               order: 2,
-            }
+            },
           ]),
         },
 
@@ -135,7 +135,6 @@ export class ProductController {
   findBySlug(@Param('slug') slug: string) {
     return this.productService.findBySlug(slug);
   }
-
 
   @Get(':id')
   findOne(@Param('id') id: string) {

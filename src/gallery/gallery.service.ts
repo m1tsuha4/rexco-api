@@ -7,14 +7,17 @@ import { existsSync, unlinkSync } from 'fs';
 
 @Injectable()
 export class GalleryService {
-  constructor (private readonly prisma: PrismaService) {}
-  
-  async create(createGalleryDto: CreateGalleryDto, image?: Express.Multer.File) {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(
+    createGalleryDto: CreateGalleryDto,
+    image?: Express.Multer.File,
+  ) {
     return this.prisma.webGallery.create({
       data: {
         title: createGalleryDto.title,
         image: `/uploads/gallery/${image?.filename}`,
-      }
+      },
     });
   }
 
@@ -30,7 +33,11 @@ export class GalleryService {
     return gallery;
   }
 
-  async update(id: string, updateGalleryDto: UpdateGalleryDto, image?: Express.Multer.File) {
+  async update(
+    id: string,
+    updateGalleryDto: UpdateGalleryDto,
+    image?: Express.Multer.File,
+  ) {
     const gallery = await this.findOne(id);
     if (!gallery) {
       throw new BadRequestException('Gallery not found');
@@ -48,7 +55,7 @@ export class GalleryService {
       data: {
         title: updateGalleryDto.title,
         image: image ? `/uploads/gallery/${image.filename}` : gallery.image,
-      }
+      },
     });
   }
 
