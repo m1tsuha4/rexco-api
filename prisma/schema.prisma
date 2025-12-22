@@ -34,13 +34,14 @@ model TokenBlacklist {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?
-  urlYoutube  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  primaryImage String?
+  description  String?
+  urlYoutube   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   productImage    ProductImage[]
   productStore    ProductStore[]
@@ -52,6 +53,8 @@ model ProductFeature {
   id        String  @id @default(cuid())
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  icon      String?
+  color     String?
   text      String
   order     Int
 }

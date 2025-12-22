@@ -17,8 +17,10 @@ export class ProductService {
 
   async create(
     createProductDto: CreateProductDto,
+    primaryImage?: Express.Multer.File,
     images?: Express.Multer.File[],
     documents?: Express.Multer.File[],
+    icon?: Express.Multer.File[],
   ) {
     try {
       const slug = slugify(createProductDto.name, {
@@ -35,13 +37,19 @@ export class ProductService {
             name: createProductDto.name,
             slug,
             description: createProductDto.description,
+            primaryImage: primaryImage ? `/uploads/product/primary-image/${primaryImage.filename}` : null,
             urlYoutube: createProductDto.urlYoutube,
           },
         });
 
         if (createProductDto.productFeature?.length) {
           await tx.productFeature.createMany({
-            data: createProductDto.productFeature.map((feature) => ({
+            data: createProductDto.productFeature.map((feature, index) => ({
+              color: feature.color,
+              icon:
+                icon && icon[index]
+                  ? `/uploads/product/icons/${icon[index].filename}`
+                  : null,
               text: feature.text,
               order: feature.order,
               productId: product.id,
@@ -107,6 +115,7 @@ export class ProductService {
       select: {
         id: true,
         name: true,
+        primaryImage: true,
         slug: true,
         description: true,
         urlYoutube: true,
@@ -207,6 +216,7 @@ export class ProductService {
       select: {
         id: true,
         name: true,
+        primaryImage: true,
         slug: true,
         description: true,
         urlYoutube: true,
@@ -219,6 +229,8 @@ export class ProductService {
           select: {
             text: true,
             order: true,
+            icon: true,
+            color: true,
           },
         },
         productStore: {
@@ -247,11 +259,14 @@ export class ProductService {
       select: {
         id: true,
         name: true,
+        primaryImage: true,
         slug: true,
         productFeature: {
           select: {
             text: true,
             order: true,
+            icon: true,
+            color: true,
           },
         },
         productImage: {

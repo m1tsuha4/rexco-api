@@ -4,11 +4,14 @@ import z from 'zod';
 export const CreateProductSchema = z.object({
   name: z.string().min(3),
   description: z.string().optional(),
+  primaryImage: z.string().optional(),
   urlYoutube: z.string().url({ message: 'Invalid URL' }).optional(),
 
   productFeature: z
     .array(
       z.object({
+        icon: z.string().optional(),
+        color: z.string().optional(),
         text: z.string(),
         order: z.number(),
       }),

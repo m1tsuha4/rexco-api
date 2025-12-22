@@ -44,16 +44,19 @@ export class ProductController {
       properties: {
         name: { type: 'string', example: 'REXCO 82 - Brake Cleaner' },
         description: { type: 'string' },
+        primaryImage: { type: 'string', format: 'binary' },
         urlYoutube: { type: 'string', example: 'https://youtube.com/...' },
 
         productFeature: {
           type: 'string',
           example: JSON.stringify([
             {
+              color: '#FF0000',
               text: 'Menghilangkan Bunyi Derit',
               order: 1,
             },
             {
+              color: '#FF0000',
               text: 'Anti Karat',
               order: 2,
             },
@@ -86,6 +89,11 @@ export class ProductController {
           type: 'array',
           items: { type: 'string', format: 'binary' },
         },
+
+        icon: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
       },
     },
   })
@@ -95,14 +103,18 @@ export class ProductController {
     createProductDto: CreateProductDto,
     @UploadedFiles()
     files: {
+      primaryImage?: Express.Multer.File[];
       images?: Express.Multer.File[];
       documents?: Express.Multer.File[];
+      icon?: Express.Multer.File[];
     },
   ) {
     return this.productService.create(
       createProductDto,
+      files.primaryImage?.[0],
       files.images,
       files.documents,
+      files.icon,
     );
   }
 
