@@ -32,7 +32,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
 
   const swaggerCustomOptions: SwaggerCustomOptions = {
-    customSiteTitle: 'Ryu API Docs',
+    customSiteTitle: 'Rexco API Docs',
     customJs: [
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.3.2/swagger-ui-bundle.js',
       'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.3.2/swagger-ui-standalone-preset.js',
