@@ -37,7 +37,9 @@ export class ProductService {
             name: createProductDto.name,
             slug,
             description: createProductDto.description,
-            primaryImage: primaryImage ? `/uploads/product/primary-image/${primaryImage.filename}` : null,
+            primaryImage: primaryImage
+              ? `/uploads/product/primary-image/${primaryImage.filename}`
+              : null,
             urlYoutube: createProductDto.urlYoutube,
           },
         });
@@ -337,8 +339,10 @@ export class ProductService {
   async update(
     id: string,
     updateProductDto: UpdateProductDto,
+    primaryImage?: Express.Multer.File,
     images?: Express.Multer.File[],
     documents?: Express.Multer.File[],
+    icon?: Express.Multer.File[],
   ) {
     const existingProduct = await this.prisma.product.findUnique({
       where: {
@@ -377,6 +381,13 @@ export class ProductService {
       'product',
       'documents',
     );
+    const oldIconPaths = join(process.cwd(), 'uploads', 'product', 'icons');
+    const oldPrimaryImagePaths = join(
+      process.cwd(),
+      'uploads',
+      'product',
+      'primary-image',
+    );
 
     try {
       const updatedProduct = await this.prisma.$transaction(async (tx) => {
@@ -386,9 +397,20 @@ export class ProductService {
             name: updateProductDto.name,
             slug,
             description: updateProductDto.description,
+            primaryImage: primaryImage
+              ? `/uploads/product/primary-image/${primaryImage.filename}`
+              : undefined,
             urlYoutube: updateProductDto.urlYoutube,
           },
         });
+
+        if (primaryImage && existingProduct.primaryImage) {
+          const fileName = basename(existingProduct.primaryImage);
+          const oldPath = join(oldPrimaryImagePaths, fileName);
+          if (existsSync(oldPath)) {
+            unlinkSync(oldPath);
+          }
+        }
 
         if (images?.length) {
           for (const img of existingProduct.productImage) {
@@ -475,6 +497,16 @@ export class ProductService {
         }
 
         if (updateProductDto.productFeature) {
+          for (const feat of existingProduct.productFeature) {
+            if (feat.icon) {
+              const fileName = basename(feat.icon);
+              const oldPath = join(oldIconPaths, fileName);
+              if (existsSync(oldPath)) {
+                unlinkSync(oldPath);
+              }
+            }
+          }
+
           await tx.productFeature.deleteMany({
             where: {
               productId: id,
@@ -482,10 +514,15 @@ export class ProductService {
           });
 
           await tx.productFeature.createMany({
-            data: updateProductDto.productFeature.map((feature) => ({
+            data: updateProductDto.productFeature.map((feature, index) => ({
               productId: id,
               text: feature.text,
               order: feature.order,
+              color: feature.color,
+              icon:
+                icon && icon[index]
+                  ? `/uploads/product/icons/${icon[index].filename}`
+                  : null,
             })),
           });
         }
