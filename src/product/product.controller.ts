@@ -46,17 +46,16 @@ export class ProductController {
         description: { type: 'string' },
         primaryImage: { type: 'string', format: 'binary' },
         urlYoutube: { type: 'string', example: 'https://youtube.com/...' },
+        color: { type: 'string', example: '#FF0000' },
 
         productFeature: {
           type: 'string',
           example: JSON.stringify([
             {
-              color: '#FF0000',
               text: 'Menghilangkan Bunyi Derit',
               order: 1,
             },
             {
-              color: '#FF0000',
               text: 'Anti Karat',
               order: 2,
             },
@@ -165,17 +164,16 @@ export class ProductController {
         description: { type: 'string' },
         primaryImage: { type: 'string', format: 'binary' },
         urlYoutube: { type: 'string', example: 'https://youtube.com/...' },
+        color: { type: 'string', example: '#FF0000' },
 
         productFeature: {
           type: 'string',
           example: JSON.stringify([
             {
-              color: '#FF0000',
               text: 'Menghilangkan Bunyi Derit',
               order: 1,
             },
             {
-              color: '#FF0000',
               text: 'Anti Karat',
               order: 2,
             },

@@ -41,13 +41,13 @@ export class ProductService {
               ? `/uploads/product/primary-image/${primaryImage.filename}`
               : null,
             urlYoutube: createProductDto.urlYoutube,
+            color: createProductDto.color,
           },
         });
 
         if (createProductDto.productFeature?.length) {
           await tx.productFeature.createMany({
             data: createProductDto.productFeature.map((feature, index) => ({
-              color: feature.color,
               icon:
                 icon && icon[index]
                   ? `/uploads/product/icons/${icon[index].filename}`
@@ -119,6 +119,7 @@ export class ProductService {
         name: true,
         primaryImage: true,
         slug: true,
+        color: true,
         description: true,
         urlYoutube: true,
         productImage: {
@@ -170,6 +171,7 @@ export class ProductService {
         id: true,
         name: true,
         slug: true,
+        color: true,
         productImage: {
           select: {
             url: true,
@@ -191,6 +193,7 @@ export class ProductService {
         id: true,
         name: true,
         slug: true,
+        color: true,
         productImage: {
           select: {
             url: true,
@@ -222,6 +225,7 @@ export class ProductService {
         slug: true,
         description: true,
         urlYoutube: true,
+        color: true,
         productImage: {
           select: {
             url: true,
@@ -232,7 +236,6 @@ export class ProductService {
             text: true,
             order: true,
             icon: true,
-            color: true,
           },
         },
         productStore: {
@@ -263,12 +266,12 @@ export class ProductService {
         name: true,
         primaryImage: true,
         slug: true,
+        color: true,
         productFeature: {
           select: {
             text: true,
             order: true,
             icon: true,
-            color: true,
           },
         },
         productImage: {
@@ -401,6 +404,7 @@ export class ProductService {
               ? `/uploads/product/primary-image/${primaryImage.filename}`
               : undefined,
             urlYoutube: updateProductDto.urlYoutube,
+            color: updateProductDto.color,
           },
         });
 
@@ -518,7 +522,6 @@ export class ProductService {
               productId: id,
               text: feature.text,
               order: feature.order,
-              color: feature.color,
               icon:
                 icon && icon[index]
                   ? `/uploads/product/icons/${icon[index].filename}`
