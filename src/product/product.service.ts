@@ -63,7 +63,7 @@ export class ProductService {
           await tx.productImage.createMany({
             data: images.map((image) => ({
               productId: product.id,
-              url: `/uploads/product/${image.filename}`,
+              url: `/uploads/product/images/${image.filename}`,
             })),
           });
         }
@@ -434,7 +434,7 @@ export class ProductService {
           await tx.productImage.createMany({
             data: images.map((image) => ({
               productId: id,
-              url: `/uploads/product/${image.filename}`,
+              url: `/uploads/product/images/${image.filename}`,
             })),
           });
         }
