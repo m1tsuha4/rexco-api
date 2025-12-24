@@ -93,7 +93,7 @@ export class ProductService {
           await tx.productDocument.createMany({
             data: documents.map((document, index) => ({
               productId: product.id,
-              file: `/uploads/product/document/${document.filename}`,
+              file: `/uploads/product/documents/${document.filename}`,
               type: createProductDto.productDocument?.[index].type,
             })),
           });
@@ -457,7 +457,7 @@ export class ProductService {
           await tx.productDocument.createMany({
             data: documents.map((document) => ({
               productId: id,
-              file: `/uploads/product/document/${document.filename}`,
+              file: `/uploads/product/documents/${document.filename}`,
               type: updateProductDto.productDocument?.[
                 documents.indexOf(document)
               ].type,
