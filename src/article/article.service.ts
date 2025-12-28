@@ -171,7 +171,7 @@ export class ArticleService {
   async uploadImage(file: Express.Multer.File) {
     return this.prisma.imageArticle.create({
       data: {
-        url: `/uploads/image-article/${file.filename}`,
+        url: `/uploads/article-image/${file.filename}`,
       },
     });
   }
@@ -196,7 +196,7 @@ export class ArticleService {
       throw new NotFoundException('Image article not found');
     }
 
-    const uploadRoot = join(process.cwd(), 'uploads', 'image-article');
+    const uploadRoot = join(process.cwd(), 'uploads', 'article-image');
     if (imageArticle.url && imageArticle.url.length > 0) {
       const fileName = basename(imageArticle.url);
       const filePath = join(uploadRoot, fileName);
