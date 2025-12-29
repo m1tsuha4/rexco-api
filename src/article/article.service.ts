@@ -92,6 +92,14 @@ export class ArticleService {
     });
   }
 
+  async findOneBySlug(slug: string) {
+    const article = await this.prisma.article.findUnique({ where: { slug } });
+    if (!article) {
+      throw new NotFoundException(`Article with slug "${slug}" not found`);
+    }
+    return article;
+  }
+
   async findOne(id: string) {
     const article = await this.prisma.article.findUnique({ where: { id } });
     if (!article) {
