@@ -12,6 +12,7 @@ import { DocumentModule } from './document/document.module';
 import { GalleryModule } from './gallery/gallery.module';
 import { InstagramModule } from './instagram/instagram.module';
 import { ArticleModule } from './article/article.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ArticleModule } from './article/article.module';
     GalleryModule,
     InstagramModule,
     ArticleModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [
@@ -37,4 +39,4 @@ import { ArticleModule } from './article/article.module';
     AppService,
   ],
 })
-export class AppModule {}
+export class AppModule { }
