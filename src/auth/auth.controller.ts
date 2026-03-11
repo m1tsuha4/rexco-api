@@ -51,4 +51,18 @@ export class AuthController {
     }
     return this.authService.logout(user.id, token);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get('validate-token')
+  @ApiOkResponse({
+    description: 'Validate token successfully',
+    type: ResponseLoginDto,
+  })
+  async validateToken(@User() user) {
+    return {
+      valid: true,
+      user,
+    };
+  }
 }
