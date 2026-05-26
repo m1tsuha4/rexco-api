@@ -2,10 +2,11 @@ import { Module } from '@nestjs/common';
 import { InstagramService } from './instagram.service';
 import { InstagramController } from './instagram.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   controllers: [InstagramController],
   providers: [InstagramService],
-  imports: [PrismaModule],
+  imports: [HttpModule, PrismaModule],
 })
 export class InstagramModule {}

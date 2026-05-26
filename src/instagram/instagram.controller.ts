@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
   UseGuards,
   UploadedFile,
 } from '@nestjs/common';
@@ -19,7 +20,7 @@ import {
   UpdateInstagramSchema,
 } from './dto/update-instagram.dto';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-guard.auth';
-import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiQuery } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import { UploadImageInterceptor } from 'src/common/interceptors/multer-config.interceptors';
 
@@ -51,8 +52,9 @@ export class InstagramController {
   }
 
   @Get()
-  findAll() {
-    return this.instagramService.findAll();
+  @ApiQuery({ name: 'after', required: false, type: String })
+  findAll(@Query('after') after?: string) {
+    return this.instagramService.findAll(after);
   }
 
   @Get(':id')
