@@ -70,7 +70,7 @@ export class InstagramService {
       );
 
       return {
-        data: transformedData,
+        posts: transformedData,
         paging: response.data.paging,
       };
     } catch (error) {
