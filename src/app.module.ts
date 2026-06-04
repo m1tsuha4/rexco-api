@@ -39,4 +39,4 @@ import { MailModule } from './mail/mail.module';
     AppService,
   ],
 })
-export class AppModule { }
+export class AppModule {}

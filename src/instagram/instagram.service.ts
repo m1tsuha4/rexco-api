@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreateInstagramDto } from './dto/create-instagram.dto';
 import { UpdateInstagramDto } from './dto/update-instagram.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -48,7 +52,12 @@ export class InstagramService {
       access_token: accessToken,
     };
 
-    if (after && after.trim() !== '' && after !== 'undefined' && after !== 'null') {
+    if (
+      after &&
+      after.trim() !== '' &&
+      after !== 'undefined' &&
+      after !== 'null'
+    ) {
       params.after = after;
     }
 
@@ -58,30 +67,30 @@ export class InstagramService {
         {
           params,
         },
-        );
-
-      const transformedData = response.data.data.map(
-        (item: any) => ({
-          id: item.id,
-          title: item.caption,
-          link: item.permalink,
-          image:
-            item.media_type === 'VIDEO'
-              ? item.thumbnail_url
-              : item.media_url,
-          created_at: item.timestamp,
-        }),
       );
+
+      const transformedData = response.data.data.map((item: any) => ({
+        id: item.id,
+        title: item.caption,
+        link: item.permalink,
+        image:
+          item.media_type === 'VIDEO' ? item.thumbnail_url : item.media_url,
+        created_at: item.timestamp,
+      }));
 
       return {
         posts: transformedData,
         paging: response.data.paging,
       };
     } catch (error) {
-      const errorMessage = error.response?.data?.error?.message || 'Failed to fetch Instagram posts';
-      console.error('Instagram API Error:', error.response?.data);
+      console.error('MESSAGE:', error?.message);
+      console.error('CODE:', error?.code);
+      console.error('RESPONSE:', error?.response?.data);
+      console.error('FULL:', error);
 
-      throw new InternalServerErrorException(errorMessage);
+      throw new InternalServerErrorException(
+        error?.message || 'Failed to fetch Instagram posts',
+      );
     }
   }
 
