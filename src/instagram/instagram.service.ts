@@ -9,6 +9,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { basename, join } from 'path';
 import { existsSync, unlinkSync } from 'fs';
 import Axios from 'axios';
+import * as https from 'https';
 
 @Injectable()
 export class InstagramService {
@@ -66,6 +67,7 @@ export class InstagramService {
         `https://graph.facebook.com/v23.0/${process.env.INSTAGRAM_USER_ID}/media`,
         {
           params,
+          httpsAgent: new https.Agent({ family: 4 }),
         },
       );
 
