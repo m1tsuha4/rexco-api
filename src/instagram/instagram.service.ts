@@ -24,7 +24,11 @@ export class InstagramService {
 
   async findAll(after?: string) {
     const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
-
+    console.log({
+      userId: process.env.INSTAGRAM_USER_ID,
+      tokenExists: !!accessToken,
+      tokenLength: accessToken?.length,
+    });
     if (!accessToken) {
       throw new InternalServerErrorException(
         'INSTAGRAM_ACCESS_TOKEN environment variable not set',
