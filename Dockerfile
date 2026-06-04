@@ -4,10 +4,14 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./prisma.config.ts
 
 RUN npm install
 
 COPY . .
+
+RUN npx prisma generate
+RUN npx prisma migrate deploy
 
 RUN npm run build
 
