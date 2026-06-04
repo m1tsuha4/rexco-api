@@ -40,7 +40,7 @@ export class InstagramService {
     const params: Record<string, any> = {
       fields:
         'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp',
-      limit: 10,
+      limit: 12,
       access_token: accessToken,
     };
 
