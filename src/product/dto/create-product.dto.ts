@@ -8,6 +8,16 @@ export const CreateProductSchema = z.object({
   urlYoutube: z.string().url({ message: 'Invalid URL' }).optional(),
   color: z.string().optional(),
 
+  productVideos: z
+    .array(
+      z.object({
+        url: z.string().url({ message: 'Invalid YouTube URL' }),
+        title: z.string().optional(),
+        order: z.number().default(0),
+      }),
+    )
+    .optional(),
+
   productFeature: z
     .array(
       z.object({
@@ -30,6 +40,7 @@ export const CreateProductSchema = z.object({
     .array(
       z.object({
         name: z.string(),
+        imageUrl: z.string().optional(),
         stores: z
           .array(
             z.object({

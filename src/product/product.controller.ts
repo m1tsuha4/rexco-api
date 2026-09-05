@@ -47,6 +47,21 @@ export class ProductController {
         primaryImage: { type: 'string', format: 'binary' },
         urlYoutube: { type: 'string', example: 'https://youtube.com/...' },
         color: { type: 'string', example: '#FF0000' },
+        productVideos: {
+          type: 'string',
+          example: JSON.stringify([
+            {
+              title: 'Review Rexco',
+              url: 'https://www.youtube.com/watch?v=example1',
+              order: 1,
+            },
+            {
+              title: 'Tutorial Penggunaan',
+              url: 'https://www.youtube.com/watch?v=example2',
+              order: 2,
+            },
+          ]),
+        },
 
         productFeature: {
           type: 'string',
@@ -93,6 +108,10 @@ export class ProductController {
           type: 'array',
           items: { type: 'string', format: 'binary' },
         },
+        variantImages: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
       },
     },
   })
@@ -106,6 +125,7 @@ export class ProductController {
       images?: Express.Multer.File[];
       documents?: Express.Multer.File[];
       icon?: Express.Multer.File[];
+      variantImages?: Express.Multer.File[];
     },
   ) {
     return this.productService.create(
@@ -114,6 +134,7 @@ export class ProductController {
       files.images,
       files.documents,
       files.icon,
+      files.variantImages,
     );
   }
 
@@ -165,6 +186,16 @@ export class ProductController {
         primaryImage: { type: 'string', format: 'binary' },
         urlYoutube: { type: 'string', example: 'https://youtube.com/...' },
         color: { type: 'string', example: '#FF0000' },
+        productVideos: {
+          type: 'string',
+          example: JSON.stringify([
+            {
+              title: 'Review Rexco',
+              url: 'https://www.youtube.com/watch?v=example1',
+              order: 1,
+            },
+          ]),
+        },
 
         productFeature: {
           type: 'string',
@@ -211,6 +242,11 @@ export class ProductController {
           type: 'array',
           items: { type: 'string', format: 'binary' },
         },
+
+        variantImages: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
       },
     },
   })
@@ -225,6 +261,7 @@ export class ProductController {
       images?: Express.Multer.File[];
       documents?: Express.Multer.File[];
       icon?: Express.Multer.File[];
+      variantImages?: Express.Multer.File[];
     },
   ) {
     return this.productService.update(
@@ -234,6 +271,7 @@ export class ProductController {
       files?.images ?? [],
       files?.documents ?? [],
       files?.icon ?? [],
+      files?.variantImages ?? [],
     );
   }
 
