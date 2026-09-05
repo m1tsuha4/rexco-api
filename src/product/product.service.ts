@@ -83,7 +83,10 @@ export class ProductService {
         if (createProductDto.productStore?.length) {
           for (let i = 0; i < createProductDto.productStore.length; i++) {
             const pStore = createProductDto.productStore[i];
-            const variantFile = variantImages && variantImages[i];
+            const variantFile =
+            variantImages?.find((file) =>
+              file.originalname.startsWith(`variant_${i}_`)
+            ) ?? (variantImages?.length === createProductDto.productStore.length ? variantImages[i] : undefined);
             const productStore = await tx.productStore.create({
               data: {
                 name: pStore.name,
@@ -586,31 +589,34 @@ export class ProductService {
           });
 
           for (let i = 0; i < updateProductDto.productStore.length; i++) {
-            const pStore = updateProductDto.productStore[i];
-            const variantFile = variantImages && variantImages[i];
+          const pStore = updateProductDto.productStore[i];
+          const variantFile =
+            variantImages?.find((file) =>
+              file.originalname.startsWith(`variant_${i}_`)
+            ) ?? (variantImages?.length === updateProductDto.productStore.length ? variantImages[i] : undefined);
 
-            const finalImageUrl = variantFile
-              ? `/uploads/product/variants/${variantFile.filename}`
-              : pStore.imageUrl ?? null;
+          const finalImageUrl = variantFile
+            ? `/uploads/product/variants/${variantFile.filename}`
+            : pStore.imageUrl ?? null;
 
-            const productStore = await tx.productStore.create({
-              data: {
-                name: pStore.name,
-                productId: id,
-                imageUrl: finalImageUrl,
-              },
+          const productStore = await tx.productStore.create({
+            data: {
+              name: pStore.name,
+              productId: id,
+              imageUrl: finalImageUrl,
+            },
+          });
+
+          if (pStore.stores?.length) {
+            await tx.store.createMany({
+              data: pStore.stores.map((store) => ({
+                name: store.name,
+                urlStore: store.urlStore,
+                productStoreId: productStore.id,
+              })),
             });
-
-            if (pStore.stores?.length) {
-              await tx.store.createMany({
-                data: pStore.stores.map((store) => ({
-                  name: store.name,
-                  urlStore: store.urlStore,
-                  productStoreId: productStore.id,
-                })),
-              });
-            }
           }
+        }
         }
 
         if (updateProductDto.productFeature) {
