@@ -21,6 +21,7 @@ export class ProductService {
     images?: Express.Multer.File[],
     documents?: Express.Multer.File[],
     icon?: Express.Multer.File[],
+    variantImages?: Express.Multer.File[],
   ) {
     try {
       const slug = slugify(createProductDto.name, {
@@ -31,7 +32,7 @@ export class ProductService {
         throw new BadRequestException('Product slug already exists');
       }
 
-      return this.prisma.$transaction(async (tx) => {
+      return await this.prisma.$transaction(async (tx) => {
         const product = await tx.product.create({
           data: {
             name: createProductDto.name,
@@ -44,6 +45,17 @@ export class ProductService {
             color: createProductDto.color,
           },
         });
+
+        if (createProductDto.productVideos?.length) {
+          await tx.productVideo.createMany({
+            data: createProductDto.productVideos.map((video, index) => ({
+              productId: product.id,
+              url: video.url,
+              title: video.title ?? null,
+              order: video.order ?? index + 1,
+            })),
+          });
+        }
 
         if (createProductDto.productFeature?.length) {
           await tx.productFeature.createMany({
@@ -69,11 +81,16 @@ export class ProductService {
         }
 
         if (createProductDto.productStore?.length) {
-          for (const pStore of createProductDto.productStore) {
+          for (let i = 0; i < createProductDto.productStore.length; i++) {
+            const pStore = createProductDto.productStore[i];
+            const variantFile = variantImages && variantImages[i];
             const productStore = await tx.productStore.create({
               data: {
                 name: pStore.name,
                 productId: product.id,
+                imageUrl: variantFile
+                  ? `/uploads/product/variants/${variantFile.filename}`
+                  : pStore.imageUrl ?? null,
               },
             });
 
@@ -94,20 +111,42 @@ export class ProductService {
             data: documents.map((document, index) => ({
               productId: product.id,
               file: `/uploads/product/documents/${document.filename}`,
-              type: createProductDto.productDocument?.[index].type,
+              type: createProductDto.productDocument?.[index]?.type,
             })),
           });
         }
 
-        return product;
+        return await tx.product.findUnique({
+          where: { id: product.id },
+          include: {
+            productVideos: { orderBy: { order: 'asc' } },
+            productImage: true,
+            productStore: {
+              include: {
+                productStore: true,
+              },
+            },
+            productDocument: true,
+            productFeature: { orderBy: { order: 'asc' } },
+          },
+        });
       });
     } catch (error) {
-      [...(images ?? []), ...(documents ?? [])].forEach((file) => {
-        if (fs.existsSync(file.path)) {
+      [
+        ...(images ?? []),
+        ...(documents ?? []),
+        ...(variantImages ?? []),
+        ...(icon ?? []),
+        ...(primaryImage ? [primaryImage] : []),
+      ].forEach((file) => {
+        if (file?.path && fs.existsSync(file.path)) {
           fs.unlinkSync(file.path);
         }
       });
 
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to create product');
     }
   }
@@ -122,6 +161,17 @@ export class ProductService {
         color: true,
         description: true,
         urlYoutube: true,
+        productVideos: {
+          select: {
+            id: true,
+            url: true,
+            title: true,
+            order: true,
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
         productImage: {
           select: {
             url: true,
@@ -129,7 +179,9 @@ export class ProductService {
         },
         productStore: {
           select: {
+            id: true,
             name: true,
+            imageUrl: true,
             productStore: {
               select: {
                 name: true,
@@ -226,6 +278,17 @@ export class ProductService {
         description: true,
         urlYoutube: true,
         color: true,
+        productVideos: {
+          select: {
+            id: true,
+            url: true,
+            title: true,
+            order: true,
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
         productImage: {
           select: {
             url: true,
@@ -240,7 +303,9 @@ export class ProductService {
         },
         productStore: {
           select: {
+            id: true,
             name: true,
+            imageUrl: true,
             productStore: {
               select: {
                 name: true,
@@ -290,7 +355,7 @@ export class ProductService {
     const existingProduct = await this.prisma.product.findUnique({
       where: {
         slug,
-      },
+       }
     });
 
     if (!existingProduct) {
@@ -298,7 +363,7 @@ export class ProductService {
     }
 
     return await this.prisma.product.findUnique({
-      where: {
+      where: { 
         slug,
       },
       select: {
@@ -307,6 +372,17 @@ export class ProductService {
         slug: true,
         description: true,
         urlYoutube: true,
+        productVideos: {
+          select: {
+            id: true,
+            url: true,
+            title: true,
+            order: true,
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
         productImage: {
           select: {
             url: true,
@@ -316,11 +392,14 @@ export class ProductService {
           select: {
             text: true,
             order: true,
+            icon: true,
           },
         },
         productStore: {
           select: {
+            id: true,
             name: true,
+            imageUrl: true,
             productStore: {
               select: {
                 name: true,
@@ -346,6 +425,7 @@ export class ProductService {
     images?: Express.Multer.File[],
     documents?: Express.Multer.File[],
     icon?: Express.Multer.File[],
+    variantImages?: Express.Multer.File[],
   ) {
     const existingProduct = await this.prisma.product.findUnique({
       where: {
@@ -356,6 +436,7 @@ export class ProductService {
         productStore: true,
         productDocument: true,
         productImage: true,
+        productVideos: true,
       },
     });
 
@@ -379,22 +460,23 @@ export class ProductService {
 
     const oldImagePaths = join(process.cwd(), 'uploads', 'product', 'images');
     const oldDocumentPaths = join(
-      process.cwd(),
-      'uploads',
-      'product',
+      process.cwd(), 
+      'uploads', 
+      'product', 
       'documents',
     );
     const oldIconPaths = join(process.cwd(), 'uploads', 'product', 'icons');
     const oldPrimaryImagePaths = join(
-      process.cwd(),
-      'uploads',
-      'product',
+      process.cwd(), 
+      'uploads', 
+      'product', 
       'primary-image',
     );
+    const oldVariantPaths = join(process.cwd(), 'uploads', 'product', 'variants');
 
     try {
       const updatedProduct = await this.prisma.$transaction(async (tx) => {
-        const product = await tx.product.update({
+        await tx.product.update({
           where: { id },
           data: {
             name: updateProductDto.name,
@@ -411,8 +493,20 @@ export class ProductService {
         if (primaryImage && existingProduct.primaryImage) {
           const fileName = basename(existingProduct.primaryImage);
           const oldPath = join(oldPrimaryImagePaths, fileName);
-          if (existsSync(oldPath)) {
-            unlinkSync(oldPath);
+          if (existsSync(oldPath)) unlinkSync(oldPath);
+        }
+
+        if (updateProductDto.productVideos) {
+          await tx.productVideo.deleteMany({ where: { productId: id } });
+          if (updateProductDto.productVideos.length > 0) {
+            await tx.productVideo.createMany({
+              data: updateProductDto.productVideos.map((video, index) => ({
+                productId: id,
+                url: video.url,
+                title: video.title ?? null,
+                order: video.order ?? index + 1,
+              })),
+            });
           }
         }
 
@@ -425,11 +519,11 @@ export class ProductService {
             }
           }
 
-          await tx.productImage.deleteMany({
-            where: {
+          await tx.productImage.deleteMany({ 
+            where: { 
               productId: id,
-            },
-          });
+             },
+            });
 
           await tx.productImage.createMany({
             data: images.map((image) => ({
@@ -453,25 +547,36 @@ export class ProductService {
               productId: id,
             },
           });
-
+          
           await tx.productDocument.createMany({
-            data: documents.map((document) => ({
+            data: documents.map((document, index) => ({
               productId: id,
               file: `/uploads/product/documents/${document.filename}`,
-              type: updateProductDto.productDocument?.[
-                documents.indexOf(document)
-              ].type,
+              type: updateProductDto.productDocument?.[index]?.type,
             })),
           });
         }
 
         if (updateProductDto.productStore) {
+          const keptImageUrls = updateProductDto.productStore
+            .map((ps) => ps.imageUrl)
+            .filter(Boolean) as string[];
+          for (const oldStore of existingProduct.productStore) {
+            if (
+              oldStore.imageUrl &&
+              !keptImageUrls.some((kept) => kept.includes(basename(oldStore.imageUrl!)))
+            ) {
+              const fileName = basename(oldStore.imageUrl);
+              const oldPath = join(oldVariantPaths, fileName);
+              if (existsSync(oldPath)) unlinkSync(oldPath);
+            }
+          }
           await tx.store.deleteMany({
-            where: {
+            where: { 
               productStore: {
                 productId: id,
+               },
               },
-            },
           });
 
           await tx.productStore.deleteMany({
@@ -480,11 +585,19 @@ export class ProductService {
             },
           });
 
-          for (const pStore of updateProductDto.productStore) {
+          for (let i = 0; i < updateProductDto.productStore.length; i++) {
+            const pStore = updateProductDto.productStore[i];
+            const variantFile = variantImages && variantImages[i];
+
+            const finalImageUrl = variantFile
+              ? `/uploads/product/variants/${variantFile.filename}`
+              : pStore.imageUrl ?? null;
+
             const productStore = await tx.productStore.create({
               data: {
                 name: pStore.name,
                 productId: id,
+                imageUrl: finalImageUrl,
               },
             });
 
@@ -529,8 +642,22 @@ export class ProductService {
             })),
           });
         }
-        return product;
+        return await tx.product.findUnique({
+          where: { id },
+          include: {
+            productVideos: { orderBy: { order: 'asc' } },
+            productImage: true,
+            productStore: {
+              include: {
+                productStore: true,
+              },
+            },
+            productDocument: true,
+            productFeature: { orderBy: { order: 'asc' } },
+          },
+        });
       });
+
       return updatedProduct;
     } catch (error) {
       throw error;
@@ -539,14 +666,13 @@ export class ProductService {
 
   async remove(id: string) {
     const existingProduct = await this.prisma.product.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
       include: {
         productFeature: true,
         productStore: true,
         productImage: true,
         productDocument: true,
+        productVideos: true,
       },
     });
 
@@ -560,56 +686,35 @@ export class ProductService {
       for (const img of existingProduct.productImage) {
         const fileName = basename(img.url);
         const oldPath = join(uploadRoot, 'images', fileName);
-        if (existsSync(oldPath)) {
-          unlinkSync(oldPath);
+        if (existsSync(oldPath)) unlinkSync(oldPath);
+      }
+      for (const store of existingProduct.productStore) {
+        if (store.imageUrl) {
+          const fileName = basename(store.imageUrl);
+          const oldPath = join(uploadRoot, 'variants', fileName);
+          if (existsSync(oldPath)) unlinkSync(oldPath);
         }
       }
 
       for (const doc of existingProduct.productDocument) {
         const fileName = basename(doc.file);
         const oldPath = join(uploadRoot, 'documents', fileName);
-        if (existsSync(oldPath)) {
-          unlinkSync(oldPath);
+        if (existsSync(oldPath)) unlinkSync(oldPath);
+      }
+      for (const feat of existingProduct.productFeature) {
+        if (feat.icon) {
+          const fileName = basename(feat.icon);
+          const oldPath = join(uploadRoot, 'icons', fileName);
+          if (existsSync(oldPath)) unlinkSync(oldPath);
         }
       }
-
-      await tx.product.delete({
-        where: {
-          id,
-        },
-      });
-
-      await tx.productFeature.deleteMany({
-        where: {
-          productId: id,
-        },
-      });
-
-      await tx.productImage.deleteMany({
-        where: {
-          productId: id,
-        },
-      });
-
-      await tx.productDocument.deleteMany({
-        where: {
-          productId: id,
-        },
-      });
-
-      await tx.productStore.deleteMany({
-        where: {
-          productId: id,
-        },
-      });
-
-      await tx.store.deleteMany({
-        where: {
-          productStore: {
-            productId: id,
-          },
-        },
-      });
+      await tx.productVideo.deleteMany({ where: { productId: id } });
+      await tx.productFeature.deleteMany({ where: { productId: id } });
+      await tx.productImage.deleteMany({ where: { productId: id } });
+      await tx.productDocument.deleteMany({ where: { productId: id } });
+      await tx.store.deleteMany({ where: { productStore: { productId: id } } });
+      await tx.productStore.deleteMany({ where: { productId: id } });
+      await tx.product.delete({where: { id } });
     });
 
     return true;

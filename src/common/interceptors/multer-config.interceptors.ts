@@ -115,11 +115,13 @@ export function UploadProductFilesInterceptor() {
   const docPath = './uploads/product/documents';
   const iconPath = './uploads/product/icons';
   const primaryImagePath = './uploads/product/primary-image';
+  const variantPath = './uploads/product/variants';
 
   ensureDirExists(imagePath);
   ensureDirExists(docPath);
   ensureDirExists(iconPath);
   ensureDirExists(primaryImagePath);
+  ensureDirExists(variantPath);
 
   return UseInterceptors(
     FileFieldsInterceptor(
@@ -128,6 +130,7 @@ export function UploadProductFilesInterceptor() {
         { name: 'documents', maxCount: 5 },
         { name: 'icon', maxCount: 5 },
         { name: 'primaryImage', maxCount: 1 },
+        { name: 'variantImages', maxCount: 10 },
       ],
       {
         storage: diskStorage({
@@ -140,6 +143,8 @@ export function UploadProductFilesInterceptor() {
               cb(null, iconPath);
             } else if (file.fieldname === 'primaryImage') {
               cb(null, primaryImagePath);
+            } else if (file.fieldname === 'variantImages') {
+              cb(null, variantPath);
             } else {
               cb(new BadRequestException('Invalid file field'), '');
             }
@@ -176,6 +181,12 @@ export function UploadProductFilesInterceptor() {
             !file.mimetype.startsWith('image/')
           ) {
             return cb(new BadRequestException('Only images allowed'), false);
+          }
+          if (
+            file.fieldname === 'variantImages' &&
+            !file.mimetype.startsWith('image/')
+          ) {
+            return cb(new BadRequestException('Only images allowed for variants'), false);
           }
 
           cb(null, true);
